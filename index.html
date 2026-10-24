@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대형 화면 스마트 타이머</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts & Pretendard 폰트 적용 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            touch-action: manipulation;
+        }
+
+        /* 고급스러운 숫자 전용 타이머 폰트 */
+        .timer-font {
+            font-family: 'Montserrat', 'Pretendard', sans-serif;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+
+        .timer-title-font {
+            font-family: 'Cinzel', 'Pretendard', serif;
+        }
+
+        /* 빔프로젝터/대형 화면용 가변 반응형 폰트 크기 */
+        .timer-display {
+            font-size: clamp(4.5rem, 20vw, 17rem);
+            line-height: 1;
+        }
+
+        /* 10초 이하 긴급 카운트다운 애니메이션 */
+        @keyframes urgent-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); text-shadow: 0 0 50px rgba(239, 68, 68, 0.8); }
+        }
+
+        .urgent {
+            color: #f87171 !important;
+            animation: urgent-pulse 1s infinite ease-in-out;
+        }
+
+        /* 네온 글래스모피즘 스티일 레벨 */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-btn {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .glass-btn:hover {
+            background: rgba(51, 65, 85, 0.85);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col justify-between items-center p-4 sm:p-8 select-none overflow-x-hidden bg-slate-950 text-slate-100">
+
+    <!-- 첨부 이미지 기반의 우아한 금빛 월계관(Wreath) 및 아치형 텍스트 배경 오버레이 -->
+    <div class="fixed inset-0 z-0 pointer-events-none flex items-center justify-center p-4">
+        <svg class="w-full h-full max-w-4xl max-h-[85vh]" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 금빛 고급 그래디언트 -->
+                <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fef08a" />
+                    <stop offset="50%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#b45309" />
+                </linearGradient>
+                <linearGradient id="gold-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#fde047" stop-opacity="0.2" />
+                    <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.6" />
+                    <stop offset="100%" stop-color="#fde047" stop-opacity="0.2" />
+                </linearGradient>
+                <!-- 곡선 텍스트용 패스 -->
+                <path id="text-arc" d="M 180 320 A 340 340 0 0 1 820 320" fill="none"/>
+            </defs>
+
+            <!-- 아치형 상단 타이틀 텍스트 -->
+            <text class="timer-title-font" fill="url(#gold-grad)" font-size="32" font-weight="800" letter-spacing="6">
+                <textPath href="#text-arc" startOffset="50%" text-anchor="middle">
+                    CHAMPIONSHIP COUNTDOWN
+                </textPath>
+            </text>
+
+            <!-- 좌측 월계관 잎 조형 -->
+            <g fill="url(#gold-grad)" opacity="0.45">
+                <path d="M 220 750 C 120 580 140 360 300 200 Q 280 280 330 340 C 200 480 200 640 220 750 Z" />
+                <!-- 잎사귀 세부 디테일 -->
+                <path d="M 280 220 C 230 200 190 230 170 270 C 210 270 250 250 280 220 Z" />
+                <path d="M 220 310 C 160 300 130 340 120 390 C 160 380 200 350 220 310 Z" />
+                <path d="M 180 420 C 120 420 90 470 90 520 C 130 500 170 470 180 420 Z" />
+                <path d="M 160 550 C 110 570 90 620 100 680 C 130 640 160 600 160 550 Z" />
+                <!-- 열매/방울 디테일 -->
+                <circle cx="290" cy="250" r="8" fill="#fef08a" />
+                <circle cx="230" cy="350" r="9" fill="#fde047" />
+                <circle cx="190" cy="470" r="8" fill="#fef08a" />
+            </g>
+
+            <!-- 우측 월계관 잎 조형 (대칭) -->
+            <g fill="url(#gold-grad)" opacity="0.45" transform="translate(1000, 0) scale(-1, 1)">
+                <path d="M 220 750 C 120 580 140 360 300 200 Q 280 280 330 340 C 200 480 200 640 220 750 Z" />
+                <path d="M 280 220 C 230 200 190 230 170 270 C 210 270 250 250 280 220 Z" />
+                <path d="M 220 310 C 160 300 130 340 120 390 C 160 380 200 350 220 310 Z" />
+                <path d="M 180 420 C 120 420 90 470 90 520 C 130 500 170 470 180 420 Z" />
+                <path d="M 160 550 C 110 570 90 620 100 680 C 130 640 160 600 160 550 Z" />
+                <circle cx="290" cy="250" r="8" fill="#fef08a" />
+                <circle cx="230" cy="350" r="9" fill="#fde047" />
+                <circle cx="190" cy="470" r="8" fill="#fef08a" />
+            </g>
+
+            <!-- 하단 우아한 리본 매듭 디테일 -->
+            <g fill="url(#gold-grad)" opacity="0.6" transform="translate(500, 780)">
+                <path d="M -50 0 C -90 -30 -120 10 -60 40 C -20 60 0 10 0 0 C 0 10 20 60 60 40 C 120 10 90 -30 50 0 Z" />
+                <path d="M -20 20 L -70 110 L -30 100 L 0 40 L 30 100 L 70 110 L 20 20 Z" />
+                <circle cx="0" cy="10" r="12" fill="#fef08a" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- 은은한 배경 오로라 그래디언트 효과 -->
+    <div class="fixed inset-0 z-0 bg-radial-gradient pointer-events-none opacity-60" 
+         style="background: radial-gradient(circle at 50% 45%, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.98) 75%);">
+    </div>
+
+    <!-- 상단 헤더 -->
+    <header class="relative z-10 w-full max-w-4xl text-center pt-2 sm:pt-4">
+        <h1 class="timer-title-font text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-500 tracking-wider drop-shadow-[0_4px_12px_rgba(245,158,11,0.3)]">
+            SMART TIMER
+        </h1>
+        <div class="h-0.5 w-32 mx-auto my-2 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-75"></div>
+        <p class="text-xs sm:text-sm text-amber-200/70 font-medium tracking-widest uppercase">Official Match & Event Countdown</p>
+    </header>
+
+    <!-- 중앙 타이머 메인 영역 -->
+    <main class="relative z-10 w-full max-w-5xl flex flex-col items-center justify-center my-auto py-4 sm:py-6">
+        
+        <!-- 타이머 시간 숫자 표시 (월계관 중앙 배치) -->
+        <div id="timer-display" class="timer-font timer-display font-black text-amber-50 tracking-tight transition-all duration-300 my-1 text-shadow-2xl drop-shadow-[0_12px_35px_rgba(0,0,0,0.9)]">
+            05:00
+        </div>
+
+        <!-- 시간 종료 안내 메시지 및 상태 표시 -->
+        <div id="status-message" class="h-12 sm:h-16 flex items-center justify-center text-xl sm:text-3xl md:text-4xl font-extrabold text-amber-300 transition-all opacity-0 transform scale-95 duration-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+            ✨ 시간이 종료되었습니다! ✨
+        </div>
+
+        <!-- 빠른 선택 버튼 (5분, 10분, 15분) -->
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-md mt-1 px-2">
+            <button onclick="setQuickTime(5)" class="glass-btn py-3 sm:py-3.5 text-amber-100 font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:text-white hover:border-amber-400/50 active:scale-95 transition">
+                +5분
+            </button>
+            <button onclick="setQuickTime(10)" class="glass-btn py-3 sm:py-3.5 text-amber-100 font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:text-white hover:border-amber-400/50 active:scale-95 transition">
+                +10분
+            </button>
+            <button onclick="setQuickTime(15)" class="glass-btn py-3 sm:py-3.5 text-amber-100 font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:text-white hover:border-amber-400/50 active:scale-95 transition">
+                +15분
+            </button>
+        </div>
+
+    </main>
+
+    <!-- 하단 컨트롤 패널 -->
+<!-- ... existing code -->
